@@ -24,6 +24,7 @@ import com.deathmotion.totemguard.common.check.annotations.CheckData;
 import com.deathmotion.totemguard.common.check.annotations.RequiresTickEnd;
 import com.deathmotion.totemguard.common.check.type.PacketCheck;
 import com.deathmotion.totemguard.common.player.TGPlayer;
+import com.deathmotion.totemguard.common.player.data.MarlowHandshake;
 import com.deathmotion.totemguard.common.player.data.TickData;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -44,8 +45,9 @@ public class ProtocolC extends CheckImpl implements PacketCheck {
         if (event.getPacketType() != PacketType.Play.Client.CLIENT_TICK_END) return;
 
         if (tickData.isAttacking() && tickData.isPlacing() && !tickData.isInteracting()) {
-            if (player.isMarlowOptimizer()) return;
-            fail();
+            MarlowHandshake marlow = player.getMarlowHandshake();
+            if (marlow == MarlowHandshake.VERIFIED || marlow.inFlight()) return;
+            fail("marlow={0},brand={1}", marlow, player.getClientBrand());
         }
     }
 }

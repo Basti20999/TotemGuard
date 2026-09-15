@@ -33,6 +33,7 @@ import com.deathmotion.totemguard.common.features.punishment.BanAnimationImpl;
 import com.deathmotion.totemguard.common.platform.player.PlatformPlayer;
 import com.deathmotion.totemguard.common.player.data.ClickData;
 import com.deathmotion.totemguard.common.player.data.Data;
+import com.deathmotion.totemguard.common.player.data.MarlowHandshake;
 import com.deathmotion.totemguard.common.player.data.TickData;
 import com.deathmotion.totemguard.common.player.data.TotemData;
 import com.deathmotion.totemguard.common.player.data.ping.PingData;
@@ -106,7 +107,7 @@ public class TGPlayer implements TGUser {
     private volatile Long databaseProfileId;
 
     @Setter
-    private boolean marlowOptimizer;
+    private volatile MarlowHandshake marlowHandshake = MarlowHandshake.NONE;
 
     @Setter
     @Nullable
@@ -317,6 +318,10 @@ public class TGPlayer implements TGUser {
 
     public ClientVersion getClientVersion() {
         return Objects.requireNonNullElseGet(user.getClientVersion(), () -> PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+    }
+
+    public boolean isMarlowOptimizer() {
+        return marlowHandshake == MarlowHandshake.VERIFIED;
     }
 
     public boolean supportsEndTick() {
