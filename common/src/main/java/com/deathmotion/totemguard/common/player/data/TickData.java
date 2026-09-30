@@ -46,6 +46,14 @@ public class TickData {
     private boolean startingToGlide;
     private boolean jumpingWithMount;
 
+    // Counts CLIENT_TICK_END and flying packets and is never reset. Two packets that see the same value were
+    // sent by the client in the same tick, however far apart or bunched together they arrived at the server.
+    private long tickBoundaries;
+
+    public void recordTickBoundary() {
+        tickBoundaries++;
+    }
+
     public void reset() {
         swapping = false;
         dropping = false;

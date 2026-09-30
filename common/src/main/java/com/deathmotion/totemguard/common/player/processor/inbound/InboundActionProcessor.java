@@ -139,7 +139,12 @@ public class InboundActionProcessor extends ProcessorInbound {
     public void handleInboundPost(PacketReceiveEvent event) {
         clickData.checkPost();
 
-        if (event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END && player.supportsEndTick()) {
+        final PacketTypeCommon packetType = event.getPacketType();
+        if (packetType == PacketType.Play.Client.CLIENT_TICK_END || WrapperPlayClientPlayerFlying.isFlying(packetType)) {
+            tickData.recordTickBoundary();
+        }
+
+        if (packetType == PacketType.Play.Client.CLIENT_TICK_END && player.supportsEndTick()) {
             tickData.reset();
         }
     }

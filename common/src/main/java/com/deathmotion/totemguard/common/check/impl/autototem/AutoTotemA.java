@@ -23,6 +23,7 @@ import com.deathmotion.totemguard.common.check.CheckImpl;
 import com.deathmotion.totemguard.common.check.annotations.CheckData;
 import com.deathmotion.totemguard.common.check.type.EventCheck;
 import com.deathmotion.totemguard.common.player.TGPlayer;
+import com.deathmotion.totemguard.common.player.data.TickData;
 import com.deathmotion.totemguard.common.player.inventory.InventoryConstants;
 import com.deathmotion.totemguard.common.player.inventory.enums.Issuer;
 import com.deathmotion.totemguard.common.player.inventory.enums.SlotAction;
@@ -40,11 +41,15 @@ public class AutoTotemA extends CheckImpl implements EventCheck {
     private static final long MAX_CLICK_DIFF_MS = 5L;
     private static final long MAX_USE_TO_PLACE_DIFF_MS = 1500L;
 
+    private final TickData tickData;
+
     private Long popTimestamp;
     private Long pickupTimestamp;
+    private long pickupTickBoundary;
 
     public AutoTotemA(TGPlayer player) {
         super(player);
+        this.tickData = player.getTickData();
     }
 
     @Override
@@ -69,6 +74,7 @@ public class AutoTotemA extends CheckImpl implements EventCheck {
         if (!inventory.isCarryingTotem()) return;
 
         pickupTimestamp = carried.getTimestamp();
+        pickupTickBoundary = tickData.getTickBoundaries();
     }
 
     private void detectTotemPlacedInHand(@NotNull List<InventorySlot> changedSlots) {
@@ -89,7 +95,11 @@ public class AutoTotemA extends CheckImpl implements EventCheck {
         long clickDiff = placedAt - pickupTimestamp;
         long useDiff = placedAt - popTimestamp;
 
-        if (clickDiff >= 0 && clickDiff <= MAX_CLICK_DIFF_MS && useDiff >= 0 && useDiff <= MAX_USE_TO_PLACE_DIFF_MS) {
+        // Arrival times say nothing on a laggy connection, because a lag spike delivers clicks made seconds apart
+        // in one burst. Only clicks sent within a single client tick are impossible for a human.
+        boolean sameClientTick = tickData.getTickBoundaries() == pickupTickBoundary;
+
+        if (sameClientTick && clickDiff >= 0 && clickDiff <= MAX_CLICK_DIFF_MS && useDiff >= 0 && useDiff <= MAX_USE_TO_PLACE_DIFF_MS) {
             fail("clickDiff={0}ms,useDiff={1}ms", clickDiff, useDiff);
         }
 
